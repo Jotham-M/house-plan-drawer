@@ -43,7 +43,7 @@ button, input {
   width: 100%;
   min-height: 100vh;
   display: grid;
-  grid-template-columns: 320px 1fr;
+  grid-template-columns: 330px 1fr;
 }
 
 .toolbar {
@@ -52,12 +52,12 @@ button, input {
   padding: 20px 18px;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
   box-shadow: var(--shadow);
 }
 
 .brand-block {
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
 
 .eyebrow {
@@ -126,21 +126,38 @@ button, input {
   padding: 14px 14px 12px;
 }
 
+.panel h2 {
+  margin: 0 0 10px;
+  font-size: 1rem;
+  color: var(--primary);
+}
+
+.panel input {
+  width: 100%;
+  margin-top: 6px;
+  margin-bottom: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.7);
+  color: var(--text);
+  padding: 0.7rem 0.8rem;
+}
+
 .panel label {
   display: block;
-  margin-bottom: 10px;
   color: var(--muted);
-  font-size: 0.85rem;
+  font-size: 0.82rem;
 }
 
 input[type="range"] {
   width: 100%;
   accent-color: var(--primary);
+  margin: 0;
 }
 
 #snapValue {
   display: block;
-  margin-top: 8px;
+  margin-top: 9px;
   color: var(--primary);
   font-weight: 700;
   font-size: 0.86rem;
@@ -149,6 +166,39 @@ input[type="range"] {
 .actions {
   display: grid;
   gap: 10px;
+}
+
+.wide {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.results-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#materialResults {
+  display: grid;
+  gap: 8px;
+}
+
+.material-stat {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(17, 24, 39, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 10px;
+  padding: 8px 10px;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.material-stat strong {
+  color: var(--text);
+  font-weight: 700;
 }
 
 .tips h2 {

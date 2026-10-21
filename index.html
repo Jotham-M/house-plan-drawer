@@ -14,6 +14,20 @@
           <h1>House Plan Designer</h1>
         </div>
 
+        <div class="panel planner-panel">
+          <h2>AI Planner</h2>
+          <label for="groundArea">Ground area (m²)</label>
+          <input id="groundArea" type="number" min="80" max="5000" value="1800" />
+
+          <label for="bedroomCount">Bedrooms</label>
+          <input id="bedroomCount" type="number" min="1" max="6" value="3" />
+
+          <label for="bathroomCount">Bathrooms</label>
+          <input id="bathroomCount" type="number" min="1" max="5" value="2" />
+
+          <button id="generatePlan" class="primary wide">Generate Plan</button>
+        </div>
+
         <div class="tool-group">
           <button class="tool-button active" data-tool="wall">Draw Wall</button>
           <button class="tool-button" data-tool="room">Add Room</button>
@@ -30,6 +44,11 @@
         <div class="panel actions">
           <button id="clearCanvas" class="secondary">Clear Plan</button>
           <button id="exportSvg" class="primary">Export SVG</button>
+        </div>
+
+        <div class="panel results-panel">
+          <h2>Material Estimate</h2>
+          <div id="materialResults"></div>
         </div>
 
         <div class="panel tips">
