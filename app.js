@@ -16,6 +16,7 @@ const state = {
   walls: [],
   rooms: [],
   labels: [],
+  dimensions: [],
   draft: null,
 };
 
@@ -93,6 +94,10 @@ function addLabel(x, y, labelText) {
   state.labels.push({ x, y, text: labelText });
 }
 
+function addDimension(start, end, text, orientation = 'horizontal') {
+  state.dimensions.push({ start, end, text, orientation });
+}
+
 function getBuildingBounds() {
   if (!state.rooms.length) {
     return { minX: 150, minY: 120, maxX: 920, maxY: 620 };
@@ -112,6 +117,23 @@ function getBuildingBounds() {
     maxX: Math.max(...xs) + 40,
     maxY: Math.max(...ys) + 40,
   };
+}
+
+function addRoomDimensions() {
+  state.dimensions = [];
+
+  state.rooms.forEach((room) => {
+    const left = room.x;
+    const right = room.x + room.width;
+    const top = room.y;
+    const bottom = room.y + room.height;
+
+    const widthMeters = (room.width / 30).toFixed(1);
+    const heightMeters = (room.height / 30).toFixed(1);
+
+    addDimension({ x: left, y: top - 18 }, { x: right, y: top - 18 }, `${widthMeters}m`, 'horizontal');
+    addDimension({ x: right + 18, y: top }, { x: right + 18, y: bottom }, `${heightMeters}m`, 'vertical');
+  });
 }
 
 function estimateMaterials(groundArea, bedroomCount, bathroomCount) {
@@ -231,6 +253,7 @@ function generateSmartPlan() {
     text: room.name,
   }));
 
+  addRoomDimensions();
   render();
   renderMaterialEstimate();
 }
@@ -262,6 +285,33 @@ function projectSide(x, y, z = 0) {
     x: x + z,
     y: 700 - y,
   };
+}
+
+function createDimensionMarkup() {
+  return state.dimensions
+    .map((dimension) => {
+      const start = dimension.start;
+      const end = dimension.end;
+      const midX = (start.x + end.x) / 2;
+      const midY = (start.y + end.y) / 2;
+
+      if (dimension.orientation === 'horizontal') {
+        return `
+          <line x1="${start.x}" y1="${start.y}" x2="${end.x}" y2="${end.y}" stroke="#f8fafc" stroke-width="1.5" />
+          <line x1="${start.x}" y1="${start.y - 6}" x2="${start.x}" y2="${start.y + 6}" stroke="#f8fafc" stroke-width="1.5" />
+          <line x1="${end.x}" y1="${end.y - 6}" x2="${end.x}" y2="${end.y + 6}" stroke="#f8fafc" stroke-width="1.5" />
+          <text x="${midX}" y="${midY - 8}" fill="#f8fafc" font-size="12" text-anchor="middle">${dimension.text}</text>
+        `;
+      }
+
+      return `
+        <line x1="${start.x}" y1="${start.y}" x2="${end.x}" y2="${end.y}" stroke="#f8fafc" stroke-width="1.5" />
+        <line x1="${start.x - 6}" y1="${start.y}" x2="${start.x + 6}" y2="${start.y}" stroke="#f8fafc" stroke-width="1.5" />
+        <line x1="${end.x - 6}" y1="${end.y}" x2="${end.x + 6}" y2="${end.y}" stroke="#f8fafc" stroke-width="1.5" />
+        <text x="${midX + 10}" y="${midY}" fill="#f8fafc" font-size="12" text-anchor="middle" transform="rotate(-90 ${midX + 10} ${midY})">${dimension.text}</text>
+      `;
+    })
+    .join('');
 }
 
 function create3DFloorMarkup(mode) {
@@ -446,6 +496,8 @@ function render() {
     )
     .join('');
 
+  const dimensionMarkup = createDimensionMarkup();
+
   let draftMarkup = '';
 
   if (state.draft && state.draft.kind === 'wall') {
@@ -480,6 +532,7 @@ function render() {
     ${roomMarkup}
     ${wallMarkup}
     ${labelMarkup}
+    ${dimensionMarkup}
     ${draftMarkup}
   `;
 }
@@ -605,6 +658,7 @@ clearCanvasButton.addEventListener('click', () => {
   state.walls = [];
   state.rooms = [];
   state.labels = [];
+  state.dimensions = [];
   state.draft = null;
   render();
 });
