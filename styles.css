@@ -73,6 +73,28 @@ button, input {
   font-size: clamp(1.6rem, 2vw, 2.1rem);
 }
 
+.view-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.view-btn {
+  background: rgba(30, 41, 59, 0.9);
+  color: var(--text);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 10px;
+  padding: 0.7rem 0.8rem;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.view-btn.active {
+  background: linear-gradient(135deg, var(--primary), var(--primary-strong));
+  color: #062638;
+  box-shadow: 0 12px 25px rgba(59, 130, 246, 0.28);
+}
+
 .tool-group {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -115,7 +137,8 @@ button, input {
 
 .tool-button:hover,
 .primary:hover,
-.secondary:hover {
+.secondary:hover,
+.view-btn:hover {
   transform: translateY(-1px);
 }
 
