@@ -17,6 +17,8 @@ const state = {
   rooms: [],
   labels: [],
   dimensions: [],
+  openings: [],
+  setbacks: [],
   draft: null,
 };
 
@@ -98,9 +100,13 @@ function addDimension(start, end, text, orientation = 'horizontal') {
   state.dimensions.push({ start, end, text, orientation });
 }
 
-function getBuildingBounds() {
+function addOpening(x, y, width, height, label, orientation = 'door') {
+  state.openings.push({ x, y, width, height, label, orientation });
+}
+
+function getPlanEnvelope() {
   if (!state.rooms.length) {
-    return { minX: 150, minY: 120, maxX: 920, maxY: 620 };
+    return { minX: 120, minY: 80, maxX: 960, maxY: 640, width: 840, height: 560 };
   }
 
   const xs = [];
@@ -111,28 +117,68 @@ function getBuildingBounds() {
     ys.push(room.y, room.y + room.height);
   });
 
+  const minX = Math.min(...xs) - 40;
+  const minY = Math.min(...ys) - 40;
+  const maxX = Math.max(...xs) + 40;
+  const maxY = Math.max(...ys) + 40;
+
   return {
-    minX: Math.min(...xs) - 40,
-    minY: Math.min(...ys) - 40,
-    maxX: Math.max(...xs) + 40,
-    maxY: Math.max(...ys) + 40,
+    minX,
+    minY,
+    maxX,
+    maxY,
+    width: maxX - minX,
+    height: maxY - minY,
   };
 }
 
-function addRoomDimensions() {
+function addArchitecturalAnnotations() {
   state.dimensions = [];
+  state.openings = [];
+  state.setbacks = [];
 
-  state.rooms.forEach((room) => {
-    const left = room.x;
-    const right = room.x + room.width;
-    const top = room.y;
-    const bottom = room.y + room.height;
+  const envelope = getPlanEnvelope();
+  const left = envelope.minX;
+  const right = envelope.maxX;
+  const top = envelope.minY;
+  const bottom = envelope.maxY;
+  const widthMeters = (envelope.width / 30).toFixed(1);
+  const heightMeters = (envelope.height / 30).toFixed(1);
 
-    const widthMeters = (room.width / 30).toFixed(1);
-    const heightMeters = (room.height / 30).toFixed(1);
+  addDimension({ x: left, y: top - 26 }, { x: right, y: top - 26 }, `${widthMeters}m`, 'horizontal');
+  addDimension({ x: right + 26, y: top }, { x: right + 26, y: bottom }, `${heightMeters}m`, 'vertical');
 
-    addDimension({ x: left, y: top - 18 }, { x: right, y: top - 18 }, `${widthMeters}m`, 'horizontal');
-    addDimension({ x: right + 18, y: top }, { x: right + 18, y: bottom }, `${heightMeters}m`, 'vertical');
+  const setbackInset = 20;
+  state.setbacks = [
+    { x1: left + setbackInset, y1: top + setbackInset, x2: right - setbackInset, y2: top + setbackInset },
+    { x1: left + setbackInset, y1: bottom - setbackInset, x2: right - setbackInset, y2: bottom - setbackInset },
+    { x1: left + setbackInset, y1: top + setbackInset, x2: left + setbackInset, y2: bottom - setbackInset },
+    { x1: right - setbackInset, y1: top + setbackInset, x2: right - setbackInset, y2: bottom - setbackInset },
+  ];
+
+  state.rooms.forEach((room, index) => {
+    const widthMetersRoom = (room.width / 30).toFixed(1);
+    const heightMetersRoom = (room.height / 30).toFixed(1);
+
+    addDimension(
+      { x: room.x, y: room.y - 18 },
+      { x: room.x + room.width, y: room.y - 18 },
+      `${widthMetersRoom}m`,
+      'horizontal',
+    );
+
+    addDimension(
+      { x: room.x + room.width + 18, y: room.y },
+      { x: room.x + room.width + 18, y: room.y + room.height },
+      `${heightMetersRoom}m`,
+      'vertical',
+    );
+
+    if (index % 2 === 0) {
+      addOpening(room.x + 10, room.y + 2, 30, 8, 'D', 'door');
+    } else {
+      addOpening(room.x + room.width - 40, room.y + 2, 22, 8, 'W', 'window');
+    }
   });
 }
 
@@ -253,7 +299,7 @@ function generateSmartPlan() {
     text: room.name,
   }));
 
-  addRoomDimensions();
+  addArchitecturalAnnotations();
   render();
   renderMaterialEstimate();
 }
@@ -314,8 +360,31 @@ function createDimensionMarkup() {
     .join('');
 }
 
+function createSetbackMarkup() {
+  return state.setbacks
+    .map(
+      (line) => `
+        <line x1="${line.x1}" y1="${line.y1}" x2="${line.x2}" y2="${line.y2}" stroke="rgba(125,211,252,0.8)" stroke-width="1" stroke-dasharray="6 6" />
+      `,
+    )
+    .join('');
+}
+
+function createOpeningMarkup() {
+  return state.openings
+    .map(
+      (opening) => `
+        <g>
+          <rect x="${opening.x}" y="${opening.y}" width="${opening.width}" height="${opening.height}" fill="rgba(96,165,250,0.18)" stroke="rgba(96,165,250,0.8)" stroke-width="1.5" rx="3" />
+          <text x="${opening.x + opening.width / 2}" y="${opening.y + opening.height / 2 + 3}" fill="#dbeafe" font-size="9" text-anchor="middle">${opening.label}</text>
+        </g>
+      `,
+    )
+    .join('');
+}
+
 function create3DFloorMarkup(mode) {
-  const { minX, minY, maxX, maxY } = getBuildingBounds();
+  const { minX, minY, maxX, maxY } = getPlanEnvelope();
   const wallHeight = 170;
 
   const floorPoints = [
@@ -497,6 +566,8 @@ function render() {
     .join('');
 
   const dimensionMarkup = createDimensionMarkup();
+  const setbackMarkup = createSetbackMarkup();
+  const openingMarkup = createOpeningMarkup();
 
   let draftMarkup = '';
 
@@ -529,9 +600,11 @@ function render() {
     ${defs}
     <rect width="1100" height="750" fill="#0f172a"></rect>
     <rect width="1100" height="750" fill="url(#gridPattern)"></rect>
+    ${setbackMarkup}
     ${roomMarkup}
     ${wallMarkup}
     ${labelMarkup}
+    ${openingMarkup}
     ${dimensionMarkup}
     ${draftMarkup}
   `;
@@ -641,6 +714,7 @@ svg.addEventListener('pointerup', () => {
     const rect = normalizeRoomRect(state.draft);
     if (rect.width > 25 && rect.height > 25) {
       addRoom(rect);
+      addArchitecturalAnnotations();
     }
   }
 
@@ -659,6 +733,8 @@ clearCanvasButton.addEventListener('click', () => {
   state.rooms = [];
   state.labels = [];
   state.dimensions = [];
+  state.openings = [];
+  state.setbacks = [];
   state.draft = null;
   render();
 });
