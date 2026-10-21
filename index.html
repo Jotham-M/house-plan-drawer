@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>House Plan Designer</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="toolbar">
+        <div class="brand-block">
+          <p class="eyebrow">Interior planner</p>
+          <h1>House Plan Designer</h1>
+        </div>
+
+        <div class="tool-group">
+          <button class="tool-button active" data-tool="wall">Draw Wall</button>
+          <button class="tool-button" data-tool="room">Add Room</button>
+          <button class="tool-button" data-tool="label">Add Label</button>
+          <button class="tool-button" data-tool="erase">Erase</button>
+        </div>
+
+        <div class="panel">
+          <label for="snapSize">Grid</label>
+          <input id="snapSize" type="range" min="10" max="60" step="5" value="25" />
+          <span id="snapValue">25 px</span>
+        </div>
+
+        <div class="panel actions">
+          <button id="clearCanvas" class="secondary">Clear Plan</button>
+          <button id="exportSvg" class="primary">Export SVG</button>
+        </div>
+
+        <div class="panel tips">
+          <h2>How to use</h2>
+          <ul>
+            <li>Drag to create walls</li>
+            <li>Drag for a room rectangle</li>
+            <li>Click with the label tool to name an area</li>
+            <li>Use Erase to remove elements</li>
+          </ul>
+        </div>
+      </aside>
+
+      <main class="workspace">
+        <svg id="planCanvas" viewBox="0 0 1100 750" aria-label="House plan drawing canvas"></svg>
+      </main>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
